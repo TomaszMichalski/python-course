@@ -7,8 +7,46 @@ def parse_var_names(e):
     result = re.findall(r'[a-zA-z_]\w*', e) #variable may contain alphanumeric characters, but must start with a letter or underscore
     return list(set(result))
 
+#Get expression sides seprator index
+#It is the index of "=" or ">"
+def get_separator_index(e):
+    separator = e.find("=")
+    if(separator == -1):
+        separator = e.find(">")
+    return separator
+
+#Get left side of expression (before ">" or "=")
+#If side does not exist, empty string is returned
+def get_expression_left_side(e):
+    separator = get_separator_index(e)
+    if(separator == -1):
+        return ""
+    return e[:separator]
+
+#Get right of expression (after ">" or "=")
+#If side does not exist, empty string is returned
+def get_expression_right_side(e):
+    separator = get_separator_index(e)
+    if(separator == -1):
+        return ""
+    return e[separator+1:]
+
 #Validate the expression
 def validate(e):
+    #first level of validation
+    number_eq = e.count("=")
+    number_impl = e.count(">")
+    if((number_eq == 1 and number_impl == 0) or (number_eq == 0 and number_impl == 1)): #one occurence of "=" or ">" should be present, but not both
+        if(validate_side(get_expression_left_side(e)) and validate_side(get_expression_right_side(e))): #second level of validation
+            return True
+        else:
+            return False
+    else:
+        return False
+
+#Validate left or right side of ">" / "=" expresssion
+#Or just expression without these operators
+def validate_side(e):
     state = "get_var" #initial state
     br = 0 #brackets counter
     e_simplified = re.sub(r'\w+', 'v', e) #simplify the expression - we only need to know if there is a variable - handles 0's and 1' as well
@@ -43,12 +81,12 @@ def rpn(e):
     e_single = e
     e_single = e_single.replace("(", "") #delete left brackets
     e_single = e_single.replace(")", "") #delete right brackets
+    e_single = e_single.replace(" ", "") #delete spaces
     m = re.search(r'[a-zA-z_]\w*', e_single) #find the first variable in expression
     if(m.group(0) == e_single): #then it is a single variable - just return it, it is the result
         return e_single
     e_cpy = "(" + e + ")" #add outer parentheses - algorithm needs them
     e_cpy = e_cpy.replace(" ", "") #for convenience
-    print(e_cpy)
     def rpn_inner():
         nonlocal result
         nonlocal e_cpy
@@ -77,17 +115,91 @@ def dec_to_bin(number, bits):
     result = ("0" * (bits - len(result))) + result
     return result
 
-#TODO ewaluacja wyrazenia przy podaniu n-bitowej liczby dla n bitów
-def evaluate(e_rpn, var_list, bits):
+#Evaluate given simple logic expression with unary operator
+#'!' operator is supported
+def evaluate_unary_operator(operator, operand):
+    if(operator == "!"):
+        if(operand == "1"):
+            return "0"
+        else:
+            return "1"
 
-#TODO wyznaczenie wartosci, dla których wyrażenie jest prawdziwe
+#Evaluate given simple logic expression with binary operator
+#'&', '|', '^', '=', '>' operators are supported
+def evaluate_binary_operator(left_operand, operator, right_operand):
+    if(operator == "&"):
+        if(left_operand == "1" and right_operand == "1"):
+            return "1"
+        else:
+            return "0"
+    elif(operator == "|"):
+        if(left_operand == "0" and right_operand == "0"):
+            return "0"
+        else:
+            return "1"
+    elif(operator == "^"):
+        if((left_operand == "1" and right_operand == "0") or (left_operand == "0" and right_operand == "1")):
+            return "1"
+        else:
+            return "0"
+    elif(operator == "="):
+        if((left_operand == "0" and right_operand == "0") or (left_operand == "1" and right_operand == "1")):
+            return "1"
+        else:
+            return "0"
+    elif(operator == ">"):
+        if(left_operand == "1" and right_operand == "0"):
+            return "0"
+        else:
+            return "1"
+
+#Evaluate RPN expression using given var list and given binary input
+def evaluate(e_rpn, var_list, binary_input):
+    print("Evaluating: " + e_rpn)
+    print("Variables: " + str(var_list))
+    print("Binary input: " + binary_input)
+    e_eval = e_rpn
+    for i in range (0, len(binary_input)): #len(binary_input) == len(var_list)
+        e_eval = e_eval.replace(var_list[i], binary_input[i]) #replace variable names with values
+    print("After injecting values: " + e_eval)
+    stack = []
+    for token in e_eval:
+        if(token == " "): #omit spaces
+            continue
+        elif(token in operators):
+            op2 = stack.pop()
+            op1 = stack.pop()
+            eval = evaluate_binary_operator(op1, token, op2)
+            stack.append(eval)
+        else: #token is an operand
+            stack.append(token)
+    result = stack.pop()
+    print("Evaluated to: " + result)
+    return result
+
+#Evaluate full expression
+#Expression is considered full if it has left and right side
+def evaluate_full(e, var_list, binary_input):
+    #get both sides of expression and transform them to RPN
+    left_side = get_expression_left_side(e)
+    left_side = rpn(left_side)
+    right_side = get_expression_right_side(e)
+    right_side = rpn(right_side)
+    #get operator to know how to evaluate the full expression
+    operator = e[get_separator_index(e)]
+    return evaluate_binary_operator(evaluate(left_side, var_list, binary_input), operator, evaluate(right_side, var_list, binary_input))
+
+#Return set of values which (in a form of binary input where n-th bit represents 
+#value of n-th variable in given variable list) evaluate the expression to True
 def get_expression_true_set(e):
-    var_list = parse_var_names(e) #get distinct list of variables
-    e_rpn = rpn(e)
+    e_rpn = rpn(e) #get RPN form of the expression
+    var_list = parse_var_names(e) #get all variable names in expression
+    bits = len(var_list) #binary input should have length equal to number of variables in expression
     result = set()
-    for i in range (0, len(var_list)): #for every possible input bit values
-        if(evaluate(e_rpn, var_list, dec_to_bin(i))): #if the expression evaluates to True for given input
-            result.add(dec_to_bin(i))
+    for i in range (0, 2 ** bits): #for every possible input bit values
+        binary_input = dec_to_bin(i, bits)
+        if(evaluate_full(e, var_list, binary_input) == "1"):
+            result.add(binary_input)
     return result
 
 #TODO minimalizacja
@@ -95,32 +207,12 @@ def minimalize(e, true_set):
     return
 
 def main():
-    print(dec_to_bin(4, 5))
     expression = input("Expression: ")
-    #first level of validation
-    number_eq = expression.count("=")
-    number_impl = expression.count(">")
-    if((number_eq == 1 and number_impl == 0) or (number_eq == 0 and number_impl == 1)): #one occurence of "=" or ">" should be present, but not both
-        #find index of the separation between left and right side of expression (index of "=" or ">")
-        separator = expression.find("=")
-        if(separator == -1):
-            separator = expression.find(">")
-        #split the expression
-        left_side = expression[:separator]
-        right_side = expression[separator+1:]
-
-        if(validate(left_side) and validate(right_side)): #second level of validation
-            var_names_left = parse_var_names(left_side) #get set of variable names of the left side of expression
-            print(var_names_left)
-            var_names_right = parse_var_names(right_side) #get set of variable names of the right side of expression
-            print(var_names_right)
-            print(rpn(left_side))
-            print(rpn(right_side))
-        else:
-            print("Expression is invalid")
+    if(validate(expression)):
+        print("Expression is valid")
+        print(get_expression_true_set(expression))
     else:
         print("Expression is invalid")
-
 
 if __name__ == "__main__":
     main()

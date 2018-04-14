@@ -37,11 +37,15 @@ def validate(e):
     #first level of validation
     number_eq = e.count("=")
     number_impl = e.count(">")
-    if((number_eq == 1 and number_impl == 0) or (number_eq == 0 and number_impl == 1)): #one occurence of "=" or ">" should be present, but not both
+    if(number_eq > 1 or number_impl > 1): #simple syntax check
+        return False
+    elif((number_eq == 1 and number_impl == 0) or (number_eq == 0 and number_impl == 1)): #one occurence of "=" or ">" should be present, but not both
         if(validate_side(get_expression_left_side(e)) and validate_side(get_expression_right_side(e))): #second level of validation
             return True
         else:
             return False
+    elif(get_separator_index(e) == -1 and validate_side(e)): #this means that expression has no "=" or ">" operator
+        return True
     else:
         return False
 
@@ -79,6 +83,8 @@ def validate_side(e):
 
 #Convert the given number to binary, result will have given number of bits
 def dec_to_bin(number, bits):
+    if(bits < 1):
+        return ""
     result = bin(number)
     result = result[2:] #cut off the '0b'
     result = ("0" * (bits - len(result))) + result
@@ -177,36 +183,126 @@ def evaluate(e, var_list, binary_input):
 #Evaluate full expression
 #Expression is considered full if it has left and right side
 def evaluate_full(e, var_list, binary_input):
-    #get both sides of expression and transform them to RPN
-    left_side = get_expression_left_side(e)
-    right_side = get_expression_right_side(e)
-    #get operator to know how to evaluate the full expression
-    operator = e[get_separator_index(e)]
-    return evaluate_binary_operator(evaluate(left_side, var_list, binary_input), operator, evaluate(right_side, var_list, binary_input))
+    if(get_separator_index(e) == -1): #no "=" or ">" operator
+        return evaluate(e, var_list, binary_input)
+    else:
+        #get both sides of expression and transform them to RPN
+        left_side = get_expression_left_side(e)
+        right_side = get_expression_right_side(e)
+        #get operator to know how to evaluate the full expression
+        operator = e[get_separator_index(e)]
+        return evaluate_binary_operator(evaluate(left_side, var_list, binary_input), operator, evaluate(right_side, var_list, binary_input))
 
 #Return set of values which (in a form of binary input where n-th bit represents 
 #value of n-th variable in given variable list) evaluate the expression to True
-def get_expression_true_set(e):
+def get_expression_true_list(e):
     var_list = parse_var_names(e) #get all variable names in expression
     bits = len(var_list) #binary input should have length equal to number of variables in expression
-    result = set()
+    result = []
     for i in range (0, 2 ** bits): #for every possible input bit values
         binary_input = dec_to_bin(i, bits)
         if(evaluate_full(e, var_list, binary_input) == "1"):
-            result.add(binary_input)
+            result.append(binary_input)
     return result
 
-#TODO minimalizacja
-def minimalize(e, true_set):
-    return
+#Counts "1" occurences in given input string
+def count_ones(input):
+    result = 0
+    for bit in input:
+        if(bit == "1"):
+            result += 1
+    return result
 
-def main():
-    expression = input("Expression: ")
-    if(validate(expression)):
-        print("Expression is valid")
-        print(get_expression_true_set(expression))
+#Combines two binary inputs into one if it is possible - if the vary by a single bit
+#If combination is impossible, empty string is returned
+def combine(first, second):
+    count = 0 #count of digits that vary
+    length = len(first) #equal to len(second)
+    result = ""
+    if first and second:
+        for i in range(0, length):
+            if(first[i] != second[i]):
+                result += "-"
+                count += 1
+            else:
+                result += first[i] #+= second[i]
+        if(count > 1):
+            return ""
+        else:
+            return result
+    else:
+        return ""
+
+#Processes Quine-McCluskey groups until no more combinations can be performed
+def process_groups(groups):
+    changed = False #flag that indicates if any change has been made this time
+    groups_quantity = len(groups)
+    for i in range(0, groups_quantity - 1): #for every groups except the last one
+        for first in groups[i]: #process every item in this group
+            for second in groups[i + 1]: #with every item in the next group
+                combination = combine(first, second)
+                if combination: #if the combination result exists
+                    #remove both
+                    groups[i].remove(first)
+                    groups[i + 1].remove(second)
+                    #and add the result
+                    groups[i].append(combination)
+                    changed = True
+    if changed:
+        process_groups(groups)
+
+#Maps the given binary grouping result with variable list, creating minimalisation result element
+def get_result_element(var_list, bits):
+    result = ""
+    for i in range(0, len(var_list)):
+        if(bits[i] == "1"):
+            result += " " + var_list[i]
+        elif(bits[i] == "0"):
+            result += " " + var_list[i] + "'"
+    return result[1:] #just to omit the space at the beggining
+
+#Generate possible values out of grouped binary input
+def generate_binary_input(grouped_input):
+    gen = [grouped_input]
+    while gen and len(gen) != len(grouped_input):
+        current = gen[0]
+        for i in range(0, len(current)):
+            if(current[i] == "-"):
+                gen.append(current[:i] + "0" + current[i+1:])
+                gen.append(current[:i] + "1" + current[i+1:])
+                gen.remove(current)
+                break
+    return gen
+
+#TODO dodać tą tabelkę z wykreślaniem
+def minimalize(e, var_list, true_list):
+    groups_quantity = len(true_list[0]) + 1 #number of bits in any element of that set + 1 is the number of groups in Quinn-McCluskey algorithm
+    groups = []
+    for i in range(0, groups_quantity): #instantiate empty groups
+        groups.append([])
+    for input in true_list: #fill the groups
+        groups[count_ones(input)].append(input)
+    process_groups(groups)
+    result = ""
+    for group in groups:
+        for item in group:
+            if result:
+                result += " + " + get_result_element(var_list, item)
+            else:
+                result = get_result_element(var_list, item)
+    return result
+            
+#Run the Quine-McCluskey algorithm for given expression
+def quine_mccluskey(e):
+    if(validate(e)):
+        print("Result: " + minimalize(e, parse_var_names(e), get_expression_true_list(e)))
     else:
         print("Expression is invalid")
+
+def main():
+    print(str(generate_binary_input("10--")))
+    expression = input("Expression: ")
+    quine_mccluskey(expression)
 
 if __name__ == "__main__":
     main()

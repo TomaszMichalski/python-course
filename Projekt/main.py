@@ -1,6 +1,7 @@
 import re
 
-operators = "|&^!>="
+binary_operators = "|&^>="
+unary_operators = "!"
 
 #Get distinct list of variable names in expression
 def parse_var_names(e):
@@ -47,66 +48,34 @@ def validate(e):
 #Validate left or right side of ">" / "=" expresssion
 #Or just expression without these operators
 def validate_side(e):
-    state = "get_var" #initial state
+    state = "get_var_or_unary_op" #initial state
     br = 0 #brackets counter
     e_simplified = re.sub(r'\w+', 'v', e) #simplify the expression - we only need to know if there is a variable - handles 0's and 1' as well
     for char in e_simplified:
         if char == " ": #spaces are omitted
             continue
-        if state == "get_var":
+        if state == "get_var_or_unary_op":
             if char == "v": #variable placeholder found
-                state = "get_op" #expect operator now
+                state = "get_binary_op" #expect binary operator now
+            elif char in unary_operators: #check if the operator is valid
+                state = "get_var_or_unary_op" #still expect var or unary operator
             elif char == "(": #opening bracket found
                 br += 1
             else:
                 return False #expression is invalid
-        elif state == "get_op": #else would be good as well but now readability is improved
-            if char in operators: #check if the operator is valid
-                state = "get_var" #expect variable now
+        elif state == "get_binary_op": #else would be good as well but now readability is improved
+            if char in binary_operators: #check if the operator is valid
+                state = "get_var_or_unary_op" #expect variable or unary operator now
             elif char == ")": #closing bracket found
                 br -= 1
             else:
                 return False #expression is invalid
         if br < 0:
             return False
-    if br == 0 and state == "get_op": #all brackets must be closes and operator must be expected
+    if br == 0 and state == "get_binary_op": #all brackets must be closes and binary operator must be expected
         return True
     else:
         return False
-
-#Convert the expression to reverse Polish notation
-def rpn(e):
-    result = ""
-    #check if e is a single variable - it is a special case
-    e_single = e
-    e_single = e_single.replace("(", "") #delete left brackets
-    e_single = e_single.replace(")", "") #delete right brackets
-    e_single = e_single.replace(" ", "") #delete spaces
-    m = re.search(r'[a-zA-z_]\w*', e_single) #find the first variable in expression
-    if(m.group(0) == e_single): #then it is a single variable - just return it, it is the result
-        return e_single
-    e_cpy = "(" + e + ")" #add outer parentheses - algorithm needs them
-    e_cpy = e_cpy.replace(" ", "") #for convenience
-    def rpn_inner():
-        nonlocal result
-        nonlocal e_cpy
-        if(e_cpy[0] == "("): #get first char
-            c = e_cpy[0]
-        else: #or variable name
-            c = re.search(r'[a-zA-Z_]\w*', e_cpy).group(0)
-        if(c == "("):
-            e_cpy = e_cpy[1:]
-            rpn_inner()
-            a = e_cpy[0] #always operand
-            e_cpy = e_cpy[1:] #delete parsed char
-            rpn_inner()
-            e_cpy = e_cpy[1:] #delete char - always closing bracket
-            result = result + " " + a
-        else:
-            result = result + " " + c
-            e_cpy = e_cpy[len(c):] #delete parsed char
-    rpn_inner()
-    return result
 
 #Convert the given number to binary, result will have given number of bits
 def dec_to_bin(number, bits):
@@ -154,27 +123,55 @@ def evaluate_binary_operator(left_operand, operator, right_operand):
             return "1"
 
 #Evaluate RPN expression using given var list and given binary input
-def evaluate(e_rpn, var_list, binary_input):
-    print("Evaluating: " + e_rpn)
-    print("Variables: " + str(var_list))
-    print("Binary input: " + binary_input)
-    e_eval = e_rpn
+def evaluate(e, var_list, binary_input):
+    e_eval = e
     for i in range (0, len(binary_input)): #len(binary_input) == len(var_list)
         e_eval = e_eval.replace(var_list[i], binary_input[i]) #replace variable names with values
-    print("After injecting values: " + e_eval)
-    stack = []
+    operand_stack = []
+    operator_stack = []
     for token in e_eval:
-        if(token == " "): #omit spaces
-            continue
-        elif(token in operators):
-            op2 = stack.pop()
-            op1 = stack.pop()
-            eval = evaluate_binary_operator(op1, token, op2)
-            stack.append(eval)
-        else: #token is an operand
-            stack.append(token)
-    result = stack.pop()
-    print("Evaluated to: " + result)
+        if(token == "1" or token == "0"): #if token is an operand
+            operand_stack.append(token)
+        elif(token in unary_operators): #if token is a unary operator
+            operator_stack.append(token) #push it on the operator stack
+        elif(token in binary_operators): #if token is a binary operator
+            while operator_stack and operator_stack[-1] in unary_operators: #while there are operators of higher precedence
+                #apply them
+                operand = operand_stack.pop()
+                operator = operator_stack.pop()
+                ev = evaluate_unary_operator(operator, operand)
+                operand_stack.append(ev)
+            operator_stack.append(token)
+        elif(token == "("):
+            operator_stack.append("(")
+        elif(token == ")"):
+            while operator_stack and operator_stack[-1] != "(": #until we get back to left paren
+                #pop and apply and operator
+                operator = operator_stack.pop()
+                if(operator in unary_operators):
+                    operand = operand_stack.pop()
+                    ev = evaluate_unary_operator(operator, operand)
+                    operand_stack.append(ev)
+                elif(operator in binary_operators):
+                    right = operand_stack.pop()
+                    left = operand_stack.pop()
+                    ev = evaluate_binary_operator(left, operator, right)
+                    operand_stack.append(ev)
+            operator_stack.pop() #erase the left paren    
+    #when processing the expression is finished, apply the rest of operators
+    while operator_stack: #while operator stack is not empty
+        operator = operator_stack.pop()
+        if(operator in unary_operators):
+            operand = operand_stack.pop()
+            ev = evaluate_unary_operator(operator, operand)
+            operand_stack.append(ev)
+        elif(operator in binary_operators):
+            right = operand_stack.pop()
+            left = operand_stack.pop()
+            ev = evaluate_binary_operator(left, operator, right)
+            operand_stack.append(ev)
+    #then, the remainder on the operand stack is the result
+    result = operand_stack.pop()
     return result
 
 #Evaluate full expression
@@ -182,9 +179,7 @@ def evaluate(e_rpn, var_list, binary_input):
 def evaluate_full(e, var_list, binary_input):
     #get both sides of expression and transform them to RPN
     left_side = get_expression_left_side(e)
-    left_side = rpn(left_side)
     right_side = get_expression_right_side(e)
-    right_side = rpn(right_side)
     #get operator to know how to evaluate the full expression
     operator = e[get_separator_index(e)]
     return evaluate_binary_operator(evaluate(left_side, var_list, binary_input), operator, evaluate(right_side, var_list, binary_input))
@@ -192,7 +187,6 @@ def evaluate_full(e, var_list, binary_input):
 #Return set of values which (in a form of binary input where n-th bit represents 
 #value of n-th variable in given variable list) evaluate the expression to True
 def get_expression_true_set(e):
-    e_rpn = rpn(e) #get RPN form of the expression
     var_list = parse_var_names(e) #get all variable names in expression
     bits = len(var_list) #binary input should have length equal to number of variables in expression
     result = set()

@@ -248,6 +248,7 @@ def process_groups(groups):
                     #and add the result
                     groups[i].append(combination)
                     changed = True
+                    break
     if changed:
         process_groups(groups)
 
@@ -276,6 +277,10 @@ def generate_binary_input(grouped_input):
 
 #TODO dodać tą tabelkę z wykreślaniem
 def minimalize(e, var_list, true_list):
+    if(len(true_list) == 0): #always evaluates to 0
+        return "0"
+    if(len(true_list) == 2 ** len(var_list)): #always evaluates to 1
+        return "1"
     groups_quantity = len(true_list[0]) + 1 #number of bits in any element of that set + 1 is the number of groups in Quinn-McCluskey algorithm
     groups = []
     for i in range(0, groups_quantity): #instantiate empty groups
@@ -300,7 +305,6 @@ def quine_mccluskey(e):
         print("Expression is invalid")
 
 def main():
-    print(str(generate_binary_input("10--")))
     expression = input("Expression: ")
     quine_mccluskey(expression)
 

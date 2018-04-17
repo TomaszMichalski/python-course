@@ -180,7 +180,6 @@ def get_expression_true_list(e):
         binary_input = dec_to_bin(i, bits)
         if(evaluate(e, var_list, binary_input) == "1"):
             result.append(binary_input)
-    print("true list: " + str(result))
     return result
 
 #Counts "1" occurences in given input string
@@ -343,11 +342,18 @@ def multiplicate(factor, factor2):
                 result.append(i) #append only one
             else:
                 result.append(list(set(i+j))) #append both
-    print(str(factor) + " * " + str(factor2) + " = " + str(result))
     return result
 
+#Calculates "cost" of prime - which is the number of variables in it
+def calculate_prime_cost(prime):
+    cost = 0
+    for token in prime:
+        if(token != "-"):
+            cost += 1
+    return cost
+
 #TODO Petrick's method
-def petricks(chart):
+def petricks(chart, items, var_list):
     factors = [] #this will hold all factors, like (R1 + R3) (either row 1 or row 3 must be in result)
     for col in range(0, len(chart[0])):
         factor = []
@@ -357,18 +363,37 @@ def petricks(chart):
         if(factor != []):
             factors.append(factor)
     #multiplicate factors
-    print("Factors: " + str(len(factors)))
     for i in range(0, len(factors) - 1):
-        print(str(factors))
         factors[i + 1] = multiplicate(factors[i], factors[i + 1])
-    #find the minimum length of items
-    factors = sorted(factors, key=len)
-    print("sorted")
-    print(str(factors[-1:]))
+    
+    multiplied = factors[-1]
+    multiplied = sorted(multiplied, key=len)
+    min_length = len(multiplied[0]) #length of the first one is the length of products we are looking for
+    primes = []
+    for product in multiplied:
+        if len(product) == min_length:
+            primes.append(product)
 
-#TODO dodać tą tabelkę z wykreślaniem
+    #calculate each prime combination cost
+    prime_cost = []
+    for prime in primes:
+        cost = 0
+        for i in range(0, len(items)):
+            for item_index in prime:
+                cost += calculate_prime_cost(items[item_index])
+        prime_cost.append(cost)
+    #get minimum cost combinations
+    prime_min = []
+    for i in range(0, len(prime_cost)):
+        if prime_cost[i] == min(prime_cost):
+            prime_min.append(primes[i])
+    primes_literals = [] #primes represented as literals, i.e A'BC
+    for p in prime_min[0]: #each of prime_min[i] has equal cost so it does not matter which we choose
+        primes_literals.append(get_result_element(var_list, items[p]))
+    return primes_literals
+
+#Minimalize given expression using Quine-McCluskey algorithm and Petrick's method
 def minimalize(e, var_list, true_list):
-    print(str(var_list))
     if(len(true_list) == 0): #always evaluates to 0
         return "0"
     if(len(true_list) == 2 ** len(var_list)): #always evaluates to 1
@@ -390,12 +415,10 @@ def minimalize(e, var_list, true_list):
     chart = initialize_chart(true_list, items)
     #get essential primes using the chart
     essential_primes = get_essential_primes(chart, var_list, items)
-    print("Essential primes: " + str(essential_primes))
     if(check_chart_all_zero(chart, len(items), len(true_list))): #if chart is already all 0's, there is no need to do Patrick's algorithm
         return get_result(essential_primes)
     else:
-        petricks(chart)
-    return result
+        return get_result(essential_primes) + " + " + get_result(petricks(chart, items, var_list))
             
 #Run the Quine-McCluskey algorithm for given expression
 def quine_mccluskey(e):

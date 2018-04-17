@@ -213,7 +213,6 @@ def combine(first, second):
 
 #Processes Quine-McCluskey groups until no more combinations can be performed
 def process_groups(groups):
-    print("Before: " + str(groups))
     new_groups = [] #list of lists of processsed input
     used_input = [] #this will mark if input in pre-processed groups was used
     groups_quantity = len(groups)
@@ -233,14 +232,12 @@ def process_groups(groups):
                     used_input[i][item_index] = True #mark as used
                     used_input[i + 1][item2_index] = True #mark as used
                     changed = True #note that change has been made
-    print(str(changed))
     #another round of processing has finished
     for i in range(0, groups_quantity): #check if there are unused inputs - they need to be saved
         for item_index in range(0, len(groups[i])):
             if(used_input[i][item_index] == False): #if the input is unused
                 new_groups[count_ones(groups[i][item_index])].append(groups[i][item_index]) #append it as it was to the new group
     groups = new_groups #we can forget about the used ones
-    print("After: " + str(groups))
     #now it's time to erase duplicates in each group
     for i in range(0, groups_quantity): #process every group
         groups[i] = list(set(groups[i])) #make set out of the list, then make it a list 
@@ -298,20 +295,76 @@ def initialize_chart(true_list, items):
 
 #Return the essential primes using given chart, variable names list and items (like '1-00) list
 def get_essential_primes(chart, var_list, items):
-    print(str(var_list))
     primes = []
-    for column in range(0, len(chart[0])): #length of every chart row is the same, as equal to number of columns
-        count = 0 #number of 1's in column
+    for column in range(0, len(chart[0])): #length of every chart row is the same, and equal to number of columns
+        count = 0 #numer of 1's in column
         for row in range(0, len(chart)): #number of rows
             if(chart[row][column] == 1):
                 count += 1
-                essential_row = row
-
-        if(count == 1):
+                essential_row = row #save row of 1 occurence in potential essential prime
+        
+        if(count == 1): #essential prime found
             primes.append(get_result_element(var_list, items[essential_row]))
-            chart[essential_row][column] = 0 #erase the essential prime column from the chart so it will be all 0's
-
+            #erase all columns that are covered by found essential prime
+            for i in range(0, len(chart[0])):
+                if(chart[essential_row][i] == 1): #found a column to erase
+                    for j in range(0, len(chart)): #erase the column
+                        chart[j][i] = 0
     return list(set(primes))
+
+#Check if there are only 0's in chart
+def check_chart_all_zero(chart, rows, columns):
+    for i in range(0, rows):
+        for j in range(0, columns):
+            if(chart[i][j] != 0):
+                return False
+    return True
+
+#Given the result items, connect them into a single string
+def get_result(items):
+    result = ""
+    for item in items:
+        result += " + " + item
+    return result[3:] #omit the first " + "
+
+#Multiplicates two factors in Petrick's method
+def multiplicate(factor, factor2):
+    #simple cases
+    if factor == [] and factor2 == []:
+        return []
+    if factor == []:
+        return factor2
+    if factor2 == []:
+        return factor
+    result = []
+    for i in factor:
+        for j in factor2:
+            if(i == j):
+                result.append(i) #append only one
+            else:
+                result.append(list(set(i+j))) #append both
+    print(str(factor) + " * " + str(factor2) + " = " + str(result))
+    return result
+
+#TODO Petrick's method
+def petricks(chart):
+    factors = [] #this will hold all factors, like (R1 + R3) (either row 1 or row 3 must be in result)
+    for col in range(0, len(chart[0])):
+        factor = []
+        for row in range(0, len(chart)):
+            if(chart[row][col] == 1):
+                factor.append([row])
+        if(factor != []):
+            factors.append(factor)
+    #multiplicate factors
+    print("Factors: " + str(len(factors)))
+    for i in range(0, len(factors) - 1):
+        print(str(factors))
+        factors[i + 1] = multiplicate(factors[i], factors[i + 1])
+    #find the minimum length of items
+    factors = sorted(factors, key=len)
+    print("sorted")
+    print(str(factors[-1:]))
 
 #TODO dodać tą tabelkę z wykreślaniem
 def minimalize(e, var_list, true_list):
@@ -327,22 +380,21 @@ def minimalize(e, var_list, true_list):
     for input in true_list: #fill the groups
         groups[count_ones(input)].append(input)
     groups = process_groups(groups)
-    print("Back in minimalize: " + str(groups))
     result = ""
     #flatten the groups list of lists to a one-dimension list
     items = []
-    #get the initialized chart
     for group in groups:
         for item in group:
             items.append(item)
-            if result:
-                result += " + " + get_result_element(var_list, item)
-            else:
-                result = get_result_element(var_list, item)
+    #get the initialized chart
     chart = initialize_chart(true_list, items)
-    print(str(chart))
     #get essential primes using the chart
     essential_primes = get_essential_primes(chart, var_list, items)
+    print("Essential primes: " + str(essential_primes))
+    if(check_chart_all_zero(chart, len(items), len(true_list))): #if chart is already all 0's, there is no need to do Patrick's algorithm
+        return get_result(essential_primes)
+    else:
+        petricks(chart)
     return result
             
 #Run the Quine-McCluskey algorithm for given expression
@@ -353,7 +405,6 @@ def quine_mccluskey(e):
         print("Expression is invalid")
 
 def main():
-    print(evaluate_binary_operator("0", ">", "1"))
     expression = input("Expression: ")
     quine_mccluskey(expression)
 

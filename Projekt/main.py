@@ -115,7 +115,6 @@ def evaluate(e, var_list, binary_input):
     e_eval = e
     for i in range (0, len(binary_input)): #len(binary_input) == len(var_list)
         e_eval = re.sub("(?<!\w)" + var_list[i] + "(?!\w)", binary_input[i], e_eval) #replace variable names with values
-    print(e_eval)
     operand_stack = []
     operator_stack = []
     for token in e_eval:

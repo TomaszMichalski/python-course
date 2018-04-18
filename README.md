@@ -10,5 +10,5 @@ Wyrażenie może zawierać:
 Ważne:
 W algorytmie ewaluacyjnym operatory: negacji i koniunkcji mają wyższy priorytet - jest to spowodowane wygodą.
 Wtedy nie trzeba wpisywać wyrażenia, np. ((!a)&b)|c, wystarczy !a&b|c.
-W razie wątpliwości co do kolejności wykonywania działań, proszę nie żałować nawiasów - wszystkie inne operatory mają ten sam
+W razie wątpliwości co do kolejności wykonywania działań, proszę użyć nawiasowania - wszystkie inne operatory mają ten sam
 priorytet, co przy ewaluowaniu spowoduje wykonywanie ich od prawej do lewej w obrębie pojedynczej pary nawiasów.

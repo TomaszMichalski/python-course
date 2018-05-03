@@ -1,6 +1,11 @@
 import sys
 import json
 import string
+from figures import Point
+from figures import Polygon
+from figures import Rectangle
+from figures import Square
+from figures import Circle
 
 figure_types = ["point", "polygon", "rectangle", "square", "circle"]
 
@@ -214,7 +219,7 @@ def main():
         print("Screen data is invalid")
         return
 
-    #If bg_color or fg_color are not provided, set the to default (white and black, respectively)
+    #If bg_color or fg_color are not provided, set them to default (white and black, respectively)
     if 'bg_color' not in screen:
         screen['bg_color'] = "#000000"
     if 'fg_color' not in screen:
@@ -228,6 +233,27 @@ def main():
     if not validate_figures_data(figures, palette):
         print("Figures data is invalid")
         return
+
+    fig_obj = []
+    for f in figures:
+        t = f['type']
+        if t == 'point':
+            new_fig = Point(f['x'], f['y'])
+        elif t == 'polygon':
+            new_fig = Polygon(f['points'])
+        elif t == 'rectangle':
+            new_fig = Rectangle(Point(f['x'], f['y']), f['width'], f['height'])
+        elif t == 'square':
+            new_fig = Square(Point(f['x'], f['y']), f['size'])
+        elif t == 'circle':
+            new_fig = Circle(Point(f['x'], f['y']), f['radius'])
+        if 'color' in f:
+            new_fig.color = f['color']
+        fig_obj.append(new_fig)
+
+    for figure in fig_obj:
+        print(figure)
+
     
     print("So far so good")
 

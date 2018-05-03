@@ -12,3 +12,7 @@ W algorytmie ewaluacyjnym operatory: negacji i koniunkcji mają wyższy prioryte
 Wtedy nie trzeba wpisywać wyrażenia, np. ((!a)&b)|c, wystarczy !a&b|c.
 W razie wątpliwości co do kolejności wykonywania działań, proszę użyć nawiasowania - wszystkie inne operatory mają ten sam
 priorytet, co przy ewaluowaniu spowoduje wykonywanie ich od prawej do lewej w obrębie pojedynczej pary nawiasów.
+
+Projekt 2
+
+pyPNG: https://github.com/drj11/pypng

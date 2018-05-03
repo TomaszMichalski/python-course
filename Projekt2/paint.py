@@ -6,8 +6,8 @@ from figures import Polygon
 from figures import Rectangle
 from figures import Square
 from figures import Circle
-
-figure_types = ["point", "polygon", "rectangle", "square", "circle"]
+from painter import Painter
+from figures import figure_types
 
 def read_json(json_filename):
     with open(json_filename) as json_file:
@@ -254,6 +254,8 @@ def main():
     for figure in fig_obj:
         print(figure)
 
+    painter = Painter(fig_obj, screen, palette)
+    painter.paint()
     
     print("So far so good")
 

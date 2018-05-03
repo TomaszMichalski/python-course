@@ -1,5 +1,7 @@
 #Object representations of all possible shapes.
 
+figure_types = ["point", "polygon", "rectangle", "square", "circle"]
+
 #Point
 #Defined by providing numerical values of x and y coordinates
 #Color is optional

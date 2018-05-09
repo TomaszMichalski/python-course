@@ -4,7 +4,7 @@ from figures import Rectangle
 from figures import Square
 from figures import Circle
 from figures import figure_types
-import png
+from PIL import Image, ImageDraw
 
 class Painter:
         def __init__(self, figures, screen, palette):
@@ -13,78 +13,54 @@ class Painter:
             self.palette = palette
 
         def paint(self):
-            canvas = []
-            bg_color = self.convert_color(self.screen['bg_color'])
-            for i in range (0, self.screen['height']):
-                canvas.append([])
-                for j in range (0, self.screen['width']):
-                    canvas[i] += bg_color
+            size = (self.screen['width'], self.screen['height'],)
+            self.canvas = Image.new('RGB', size, self.convert_color(self.screen['bg_color']))
             for figure in self.figures:
                 if isinstance(figure, Point):
-                    canvas = self.paint_point(canvas, figure)
+                    self.paint_point(figure)
                 elif isinstance(figure, Polygon):
-                    canvas = self.paint_polygon(canvas, figure)
+                    self.paint_polygon(figure)
                 elif isinstance(figure, Rectangle):
-                    canvas = self.paint_rectangle(canvas, figure)
+                    self.paint_rectangle(figure)
                 elif isinstance(figure, Square):
-                    canvas = self.paint_square(canvas, figure)
+                    self.paint_square(figure)
                 elif isinstance(figure, Circle):
-                    canvas = self.paint_circle(canvas, figure)
+                    self.paint_circle(figure)
 
-            for i in range (0, len(canvas)):
-                canvas[i] = tuple(canvas[i])
+        def show(self):
+            self.canvas.show()
 
-            with open("out.png", 'wb') as output_file:
-                w = png.Writer(self.screen['width'], self.screen['height'])
-                w.write(output_file, canvas)
+        def save(self, filepath):
+            if not filepath.endswith(".png"):
+                filepath = filepath + ".png"
+            self.canvas.save(filepath)
 
-        def paint_point(self, canvas, point):
-            color = self.get_color(point)
-            if self.possible_to_draw(canvas, point):
-                canvas[point.y][3 * point.x] = color[0]
-                canvas[point.y][3 * point.x + 1] = color[1]
-                canvas[point.y][3 * point.x + 2] = color[2]
-            return canvas
+        def paint_point(self, point):
+            draw = ImageDraw.Draw(self.canvas)
+            draw.point([point.x, point.y], self.get_color(point))
 
-        def paint_polygon(self, canvas, polygon):
-            return canvas
+        def paint_polygon(self, polygon):
+            draw = ImageDraw.Draw(self.canvas)
+            points = []
+            for point in polygon.points:
+                points.append(point[0])
+                points.append(point[1])
+            draw.polygon(points, self.get_color(polygon))
 
-        def paint_rectangle(self, canvas, rectangle):
-            color = self.get_color(rectangle)
-            for column in range (int(rectangle.x() - rectangle.width / 2), int(rectangle.x() + rectangle.width / 2)):
-                for row in range (int(rectangle.y() - rectangle.height / 2), int(rectangle.y() + rectangle.height / 2)):
-                    if self.possible_to_draw(canvas, Point(column, row)):
-                        canvas[row][3 * column] = color[0]
-                        canvas[row][3 * column + 1] = color[1]
-                        canvas[row][3 * column + 2] = color[2]
-            return canvas
+        def paint_rectangle(self, rectangle):
+            draw = ImageDraw.Draw(self.canvas)
+            box = [rectangle.x() - rectangle.width / 2, rectangle.y() - rectangle.height / 2, rectangle.x() + rectangle.width / 2, rectangle.y() + rectangle.height / 2]
+            draw.rectangle(box, self.get_color(rectangle))
 
-        def paint_square(self, canvas, square):
-            color = self.get_color(square)
-            for column in range (int(square.x() - square.size / 2), int(square.x() + square.size / 2)):
-                for row in range (int(square.y() - square.size / 2), int(square.y() + square.size / 2)):
-                    if self.possible_to_draw(canvas, Point(column, row)):
-                        canvas[row][3 * column] = color[0]
-                        canvas[row][3 * column + 1] = color[1]
-                        canvas[row][3 * column + 2] = color[2]
-            return canvas
+        def paint_square(self, square):
+            draw = ImageDraw.Draw(self.canvas)
+            box = [square.x() - square.size / 2, square.y() - square.size / 2, square.x() + square.size / 2, square.y() + square.size / 2]
+            draw.rectangle(box, self.get_color(square))
 
-        def paint_circle(self, canvas, circle):
-            color = self.get_color(circle)
-            for row in range (circle.y() - circle.radius, circle.y() + circle.radius):
-              for column in range (circle.x() - circle.radius, circle.x() + circle.radius):
-                    if self.possible_to_draw(canvas, Point(column, row)) and (circle.x() - column) ** 2 + (circle.y() - row) ** 2 <= circle.radius ** 2:
-                        canvas[row][3 * column] = color[0]
-                        canvas[row][3 * column + 1] = color[1]
-                        canvas[row][3 * column + 2] = color[2]
-            return canvas
-
-        def possible_to_draw(self, canvas, point):
-            if len(canvas) == 0 or len(canvas[0]) == 0:
-                return False
-            if point.y >= 0 and point.y < len(canvas) and point.x >= 0 and 3 * point.x < len(canvas[0]): #possible to draw
-                return True
-            return False
+        def paint_circle(self, circle):
+            draw = ImageDraw.Draw(self.canvas)
+            box = [circle.x() - circle.radius, circle.y() - circle.radius, circle.x() + circle.radius, circle.y() + circle.radius]
+            draw.ellipse(box, self.get_color(circle))
 
         def get_color(self, figure):
             if figure.color == None:
@@ -95,14 +71,13 @@ class Painter:
         def convert_color(self, color):
             if color in self.palette: #if color is in palette, retrieve it's actual form
                 color = self.palette[color]
-            res = []
+            res = ()
             if color[0] == "#": # #rrggbb form
-                res += [int(color[1:3], 16)]
-                res += [int(color[3:5], 16)]
-                res += [int(color[5:], 16)]
+                res += (int(color[1:3], 16),)
+                res += (int(color[3:5], 16),)
+                res += (int(color[5:], 16),)
             else: # (r,g,b) form
                 color = color[1:-1]
                 for num in color.split(","):
-                    res += [int(num)]
+                    res += (int(num),)
             return res
-            

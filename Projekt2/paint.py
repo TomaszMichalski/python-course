@@ -256,6 +256,11 @@ def main():
 
     painter = Painter(fig_obj, screen, palette)
     painter.paint()
+    if output_filename == "":
+        painter.show()
+    else:
+        painter.show()
+        painter.save(output_filename)
     
     print("So far so good")
 

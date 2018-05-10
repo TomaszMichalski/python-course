@@ -7,8 +7,8 @@ figure_types = ["point", "polygon", "rectangle", "square", "circle"]
 #Color is optional
 class Point: 
     def __init__(self, x, y, color=None):
-        self.x = x
-        self.y = y
+        self.x = float(x)
+        self.y = float(y)
         self.color = color
 
     def __str__(self):
@@ -21,13 +21,15 @@ class Point:
 #Color is optional
 class Polygon:
     def __init__(self, points, color=None):
-        self.points = points
+        self.points = []
+        for point in points:
+            self.points.append(Point(point[0], point[1]))
         self.color = color
 
     def __str__(self):
         out = "Polygon ["
         for point in self.points:
-            out += "[x=" + str(point[0]) + ",y=" + str(point[1]) + "],"
+            out += "[x=" + str(point.x) + ",y=" + str(point.y) + "],"
         out = out[:-1]
         out += "]"
         if self.color != None:
@@ -41,8 +43,10 @@ class Polygon:
 class Rectangle:
     def __init__(self, center, width, height, color=None):
         self.center = center
-        self.width = width
-        self.height = height
+        center.x = float(center.x)
+        center.y = float(center.y)
+        self.width = float(width)
+        self.height = float(height)
         self.color = color
 
     def __str__(self):
@@ -62,7 +66,9 @@ class Rectangle:
 class Square:
     def __init__(self, center, size, color=None):
         self.center = center
-        self.size = size
+        center.x = float(center.x)
+        center.y = float(center.y)
+        self.size = float(size)
         self.color = color
 
     def __str__(self):
@@ -82,7 +88,9 @@ class Square:
 class Circle:
     def __init__(self, center, radius, color=None):
         self.center = center
-        self.radius = radius
+        center.x = float(center.x)
+        center.y = float(center.y)
+        self.radius = float(radius)
         self.color = color
 
     def __str__(self):

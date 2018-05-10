@@ -91,9 +91,6 @@ def main():
             new_fig.color = f['color']
         fig_obj.append(new_fig)
 
-    for figure in fig_obj:
-        print(figure)
-
     painter = Painter(fig_obj, screen, palette)
     painter.paint()
     if output_filename == "":
@@ -101,8 +98,6 @@ def main():
     else:
         painter.show()
         painter.save(output_filename)
-    
-    print("So far so good")
 
 if __name__ == "__main__":
     main()

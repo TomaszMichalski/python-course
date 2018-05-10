@@ -43,8 +43,8 @@ class Painter:
             draw = ImageDraw.Draw(self.canvas)
             points = []
             for point in polygon.points:
-                points.append(point[0])
-                points.append(point[1])
+                points.append(point.x)
+                points.append(point.y)
             draw.polygon(points, self.get_color(polygon))
 
         def paint_rectangle(self, rectangle):

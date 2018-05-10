@@ -7,7 +7,7 @@ from figures import Square
 from figures import Circle
 from painter import Painter
 from figures import figure_types
-import validator
+from validator import Validator
 
 def read_json(json_filename):
     with open(json_filename) as json_file:
@@ -43,7 +43,7 @@ def main():
     if 'Palette' in data:
         palette = data['Palette']
     #Note that palette data is optional
-    if not validator.validate_palette_data(palette):
+    if not Validator.validate_palette_data(palette):
         print("Palette data is invalid")
         return
         
@@ -55,7 +55,7 @@ def main():
         print("No 'Screen' data provided. JSON file is invalid")
         return
     
-    if not validator.validate_screen_data(screen, palette):
+    if not Validator.validate_screen_data(screen, palette):
         print("Screen data is invalid")
         return
 
@@ -70,7 +70,7 @@ def main():
     if 'Figures' in data:
         figures = data['Figures']
     #Note that figures data is optional
-    if not validator.validate_figures_data(figures, palette):
+    if not Validator.validate_figures_data(figures, palette):
         print("Figures data is invalid")
         return
 

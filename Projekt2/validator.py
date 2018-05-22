@@ -1,7 +1,28 @@
 import string
+import json
+from messages import ErrorMessage
 from figures import figure_types
 
 class Validator:
+    def validate_output_flag_use(arg_index, max_args):
+        if arg_index >= max_args:
+            ErrorMessage.invalid_output_flag_use()
+            return False
+        else:
+            return True
+
+    def validate_input_filename(filename):
+        if filename == "":
+            ErrorMessage.no_input_filename()
+            return False
+        return True
+
+    def validate_screen_data_existence(data):
+        if 'Screen' not in data:
+            ErrorMessage.no_screen_data()
+            return False
+        return True
+
     def validate_screen_data(screen, palette):
         if 'width' not in screen:
             ErrorMessage.no_property("width", screen)
@@ -140,25 +161,3 @@ class Validator:
         except:
             return False
         return True
-
-class ErrorMessage:
-    def no_property(prop, obj):
-        print("No '" + prop + "' property for object " + str(obj))
-
-    def property_not_a_number(prop, obj):
-        print("'" + prop + "' property is not a number for object " + str(obj))
-
-    def unknown_type(type_value, obj):
-        print("Unknown 'type' value: " + type_value + " for object " + str(obj))
-
-    def invalid_value_for_key(key, value, obj):
-        print("Value " + value + " invalid. Key = " + key + ". Object = " + str(obj))
-
-    def invalid_property_value(name, value, obj):
-        print("'" + name + "' property is invalid: " + value + ". Object = " + str(obj))
-
-    def property_is_not_list(name, obj):
-        print("'" + name + "' property is not a list for object " + str(obj))
-
-    def invalid_coordinates(name, value):
-        print("Invalid coordinates: " + name + " = " + str(value))

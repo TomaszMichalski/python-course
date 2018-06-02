@@ -1,9 +1,12 @@
-<html>
-    <title>
-        Stockify
-    </title>
-    <body>
-        <h1 align="center">Stockify</h1>
-        <h2 align="center">A stock market simulation</h2>
-    </body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+
+<center>
+    <br /><br /><br />
+    <a href={% url 'login' %} class="btn btn-primary btn-lg" role="button">Log in</a>
+    <br /><br /><br />
+    <a href={% url 'register' %} class="btn btn-primary btn-lg" role="button">Register</a>
+</center>
+
+{% endblock %}

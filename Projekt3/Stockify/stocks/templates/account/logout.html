@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p>You were successfully logged out</p>
+<p>Redirecting to front page...</p>
+
+<script>
+    setTimeout(function() {
+            window.location.href = '/';
+        }, 2000);
+</script>
+
+{% endblock %}

@@ -29,6 +29,6 @@ Dla pliku wyjściowego nie trzeba podawać rozszerzenia '.png'.
 
 np.
 ```
-python paint input.json
-python paint input.json --output output.png
+python paint.py input.json
+python paint.py input.json --output output.png
 ```

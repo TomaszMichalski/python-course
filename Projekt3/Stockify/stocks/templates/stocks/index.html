@@ -2,11 +2,20 @@
 
 {% block content %}
 
+<style>
+    .group {
+        width: 30%
+    }
+</style>
+
 <center>
     <br /><br /><br />
-    <a href={% url 'login' %} class="btn btn-primary btn-lg" role="button">Log in</a>
     <br /><br /><br />
-    <a href={% url 'register' %} class="btn btn-primary btn-lg" role="button">Register</a>
+    <div class="group">
+        <a href={% url 'login' %} class="btn btn-primary btn-lg btn-block" role="button">Log in</a>
+        <br /><br /><br />
+        <a href={% url 'register' %} class="btn btn-primary btn-lg btn-block" role="button">Register</a>
+    </div>
 </center>
 
 {% endblock %}

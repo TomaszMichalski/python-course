@@ -9,5 +9,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(template_name='account/logout.html'), name='logout'),
     path('register/', views.register, name='register'),
     re_path(r'^main[/]?$', views.main, name='main'),
+    path('main/browse/', views.browse, name='browse'),
+    path('main/manage/', views.manage, name='manage'),
+    path('main/history/', views.manage, name='history'),
     re_path(r'', views.page_not_found, name='error')
 ]

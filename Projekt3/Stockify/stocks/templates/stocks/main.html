@@ -2,6 +2,23 @@
 
 {% block content %}
 
-<p>Page under construction</p>
+<style>
+    .group {
+        width: 30%
+    }
+</style>
+
+<h4>Hello, {{ user.first_name }}!</h4>
+
+<center>
+    <div class="group">
+        <br /><br /><br />
+        <a href={% url 'manage' %} class="btn btn-primary btn-lg btn-block" role="button">Manage your stocks</a>
+        <br /><br /><br />
+        <a href={% url 'browse' %} class="btn btn-primary btn-lg btn-block" role="button">Browse stock markets</a>
+        <br /><br /><br />
+        <a href={% url 'history' %} class="btn btn-primary btn-lg btn-block" role="button">Show history</a>
+    </div>
+</center>
 
 {% endblock %}

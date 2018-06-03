@@ -6,6 +6,8 @@
         td { padding: 5px }
 </style>
 
+<br /><br /><br />
+
 {% if user.is_authenticated %}
     {% include "account/already_logged.html" %}
 {% else %}
@@ -27,7 +29,7 @@
                     </div>
                     {% endfor %}
                 </table>
-                <button class="btn btn-primary" style="width: 100%">Register</button>
+                <button class="btn btn-primary btn-lg" style="width: 100%">Register</button>
             </form>
         </div>
     </center>

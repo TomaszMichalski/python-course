@@ -13,7 +13,24 @@ def index(request):
     return render(request, 'stocks/index.html', {})
 
 def main(request):
+    if not request.user.is_authenticated:
+        return redirect('index')
     return render(request, 'stocks/main.html', {})
+
+def browse(request):
+    if not request.user.is_authenticated:
+        return redirect('index')
+    return render(request, 'stocks/browse.html', {})
+
+def manage(request):
+    if not request.user.is_authenticated:
+        return redirect('index')
+    return render(request, 'stocks/manage.html', {})
+
+def history(request):
+    if not request.user.is_authenticated:
+        return redirect('index')
+    return render(request, 'stocks/history.html', {})
 
 def register(request):
     if request.method == 'POST':

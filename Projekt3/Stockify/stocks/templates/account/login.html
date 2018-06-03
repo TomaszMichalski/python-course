@@ -7,7 +7,7 @@
 </style>
 
 {% if user.is_authenticated %}
-    <p>You are already logged in</p>
+    {% include "account/already_logged.html" %}
 {% else %}
     <center>
         <div style="width: 30%">

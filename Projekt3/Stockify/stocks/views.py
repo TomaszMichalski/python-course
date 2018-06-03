@@ -28,3 +28,6 @@ def register(request):
     else:
         form = RegisterForm()
     return render(request, 'account/register.html', { 'form': form })
+
+def page_not_found(request):
+    return render(request, 'other/error.html', {})

@@ -11,6 +11,6 @@ urlpatterns = [
     re_path(r'^main[/]?$', views.main, name='main'),
     path('main/browse/', views.browse, name='browse'),
     path('main/manage/', views.manage, name='manage'),
-    path('main/history/', views.manage, name='history'),
+    path('main/history/', views.history, name='history'),
     re_path(r'', views.page_not_found, name='error')
 ]

@@ -2,6 +2,42 @@
 
 {% block content %}
 
-{% include "other/under_construction.html" %}
+<style>
+    .backbtn {
+        float: right;
+        margin: 5px;
+    }
+    th {
+        text-align: center;
+    }
+    td {
+        text-align: center;
+    }
+</style>
+
+<div class="backbtn">
+    <a href={% url 'main' %} class="btn btn-primary btn-lg backbtn" role="button">Back</a>
+</div>
+
+<center>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for stock in stocks %}
+            <tr>
+                <td>{{ stock.name }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" align="center">No stock markets to show</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</center>
 
 {% endblock %}

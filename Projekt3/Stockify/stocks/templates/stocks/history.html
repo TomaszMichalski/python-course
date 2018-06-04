@@ -2,6 +2,54 @@
 
 {% block content %}
 
-{% include "other/under_construction.html" %}
+<style>
+    .backbtn {
+        float: right;
+        margin: 5px;
+    }
+    th {
+        text-align: center;
+    }
+    td {
+        text-align: center;
+    }
+</style>
+
+<div class="backbtn">
+    <a href={% url 'main' %} class="btn btn-primary btn-lg backbtn" role="button">Back</a>
+</div>
+
+<center>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Value</th>
+                <th>Cost</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.value }}</td>
+                {% if transaction.sell %}
+                    <td><font color="green">+{{ transaction.cost }}</font></td>
+                {% else %}
+                    <td><font color="red">-{{ transaction.cost }}</font></td>
+                {% endif %}
+                <td>{{ transaction.balance }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" align="center">No transactions to show</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</center>
 
 {% endblock %}

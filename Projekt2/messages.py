@@ -28,4 +28,7 @@ class ErrorMessage:
 
     def no_screen_data():
         print("No 'Screen' data provided. JSON file is invalid")
+
+    def unknown_type_for_figure(figure_type, figure):
+        print("Unknown type '" + figure_type + "' for figure: " + str(figure))
     

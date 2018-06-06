@@ -42,7 +42,7 @@ class Validator:
         for key in palette:
             colour = palette[key]
             if not Validator.validate_colour(colour):
-                ErrorMessage.invalid_value_for_key(key, colour, screen)
+                ErrorMessage.invalid_value_for_key(key, colour, palette)
                 return False
 
         return True
@@ -52,7 +52,7 @@ class Validator:
             return False
         else:
             if(colour[0] == "#"): # #rrggbb form
-                return all(c in string.hexdigits for c in colour[1:])
+                return all(c in string.hexdigits for c in colour[1:]) and len(colour[1:]) == 6
             elif colour[0] == "(" and colour[-1] == ")":
                 colour = colour[1:-1]
                 rgb_values = colour.split(",")
@@ -120,10 +120,10 @@ class Validator:
                     return False
                 for i in range (0, len(points)):
                     if not isinstance(points[i], list):
-                        ErrorMessage.property_is_not_list("points[" + i + "]", figure)
+                        ErrorMessage.property_is_not_list("points[" + str(i) + "]", figure)
                         return False
                     if len(points[i]) != 2 or not Validator.isnumber(points[i][0]) or not Validator.isnumber(points[i][1]):
-                        ErrorMessage.invalid_coordinates("points[" + i + "]", points[i])
+                        ErrorMessage.invalid_coordinates("points[" + str(i) + "]", points[i])
                         return False
         elif t == "rectangle":
             if 'width' not in figure:

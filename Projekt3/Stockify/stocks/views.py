@@ -60,8 +60,8 @@ def browse(request):
         price_month = int(float(data.Close[0]) * 100)
         price_yesterday = int(float(data.Close[len(data.Close) - 2]) * 100)
         price_new = int(float(data.Close[len(data.Close) - 1]) * 100)
-        change_yesterday = float(format((price_new - price_yesterday) / price_yesterday, ".4f"))
-        change_month = float(format((price_new - price_month) / price_month, ".4f"))
+        change_yesterday = float(format((price_new - price_yesterday) * 100 / price_yesterday, ".4f"))
+        change_month = float(format((price_new - price_month) * 100 / price_month, ".4f"))
         stock_view_model = models.StockViewModel(stock.name, helpers.money_as_string(price_new), change_yesterday, change_month)
         stock_view_models.append(stock_view_model)
     return render(request, 'stocks/browse.html', { 'stocks': stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })
@@ -75,14 +75,18 @@ def chart(request, name):
         return redirect('browse')
     end = datetime.today()
     start = end - timedelta(days=30)
-    data = quandl.get("WIKI/AAPL", rows=5)
-    return render(request, 'stocks/chart.html', { 'stock': stock, 'data': data.Close })
+    data = quandl.get(stock.quandl_name, start_date=start, end_date=end)
+    plot_data = dict()
+    for i in range (0, len(data.Close)):
+        plot_data[start.strftime("%Y-%m-%d")] = data.Close[i]
+        start += timedelta(days=1)
+    return render(request, 'stocks/chart.html', { 'stock': stock, 'data': plot_data })
 
 def manage(request):
     if not request.user.is_authenticated:
         return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
-    stocks = models.ProfileStock.objects.filter(profile=profile)
+    profile_stocks = models.ProfileStock.objects.filter(profile=profile)
     errors = []
     if request.method == "POST":
         stock_name = request.POST['stock_name']
@@ -100,11 +104,17 @@ def manage(request):
         if not errors:
             profile_stock.stocks -= amount
             profile_stock.save()
-            transaction = models.Transaction(profile=profile, stock=stock, date=datetime.today(), amount=amount, value=price, cost=amount * price, balance=profile.wallet - amount * price, sell=True)
+            transaction = models.Transaction(profile=profile, stock=stock, date=datetime.today(), amount=amount, value=price, cost=amount * price, balance=profile.wallet + amount * price, sell=True)
             transaction.save()
             profile.wallet += amount * price
             profile.save()
-    return render(request, 'stocks/manage.html', { 'stocks': stocks, 'price': helpers.money_as_string(20), 'errors': errors, 'wallet': profile.wallet_string })
+    profile_stock_view_models = []
+    for profile_stock in profile_stocks:
+        data = quandl.get(profile_stock.stock.quandl_name, start_date=datetime.today() - timedelta(days=1), end_date=datetime.today())
+        price = int(float(data.Close[0]) * 100)
+        profile_stock_view_model = models.ProfileStockViewModel(profile_stock.stock.name, profile_stock.stocks, helpers.money_as_string(price))
+        profile_stock_view_models.append(profile_stock_view_model)
+    return render(request, 'stocks/manage.html', { 'profile_stocks': profile_stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })
 
 def history(request):
     if not request.user.is_authenticated:

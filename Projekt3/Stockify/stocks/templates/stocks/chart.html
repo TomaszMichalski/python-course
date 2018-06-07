@@ -2,6 +2,9 @@
 
 {% block content %} 
 
-{{ data }}
+<script type="text/javascript">
+    var django_data = "{{ data }}";
+    document.write(typeof(django_data));
+</script>
 
 {% endblock %}

@@ -54,3 +54,9 @@ class StockViewModel():
         self.price = price
         self.change_yesterday = change_yesterday
         self.change_month = change_month
+
+class ProfileStockViewModel():
+    def __init__(self, name, amount, price):
+        self.name = name
+        self.amount = amount
+        self.price = price

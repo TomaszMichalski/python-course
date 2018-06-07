@@ -12,5 +12,7 @@ urlpatterns = [
     path('main/browse/', views.browse, name='browse'),
     path('main/manage/', views.manage, name='manage'),
     path('main/history/', views.history, name='history'),
+    re_path(r'^main/chart[/]?$', views.browse),
+    path('main/chart/<name>/', views.chart, name='chart'),
     re_path(r'', views.page_not_found, name='error')
 ]

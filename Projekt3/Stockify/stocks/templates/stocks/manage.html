@@ -20,11 +20,17 @@
 </div>
 
 <center>
+    <br /><br/>
+    {% for error in errors %}
+    <p><font color="red">{{ error }}</font></p>
+    {% endfor %}
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Stock</th>
                 <th>Amount</th>
+                <th>Price</th>
+                <th>Operation</th>
             </tr>
         </thead>
         <tbody>
@@ -32,6 +38,16 @@
             <tr>
                 <td>{{ stock.stock.name }}</td>
                 <td>{{ stock.stocks }}</td>
+                <td>{{ price }}</td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="number" min="0" style="width: 20%" name="amount">
+                        <input type="hidden" value="{{ price }}" name="price">
+                        <input type="hidden" value="{{ stock.stock.name }}" name="stock_name">
+                        <button class="btn btn-primary btn-md" role="button">Sell</button>
+                    </form>
+                </td>
             </tr>
         {% empty %}
             <tr>

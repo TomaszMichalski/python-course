@@ -7,16 +7,16 @@ class Stock(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    wallet = models.IntegerField(default=10000000) #100 000.00
+    wallet = models.CharField(max_length=32, default="100000.00")
 
 class Transaction(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     date = models.DateTimeField(default=datetime.now)
-    amount = models.IntegerField()
-    value = models.IntegerField()
-    cost = models.IntegerField()
-    balance = models.IntegerField()
+    amount = models.CharField(max_length=32)
+    value = models.CharField(max_length=32)
+    cost = models.CharField(max_length=32)
+    balance = models.CharField(max_length=32)
     sell = models.BooleanField()
 
 class ProfileStock(models.Model):

@@ -7,6 +7,7 @@ from django.contrib.auth import login
 from django.contrib.auth import logout as django_logout
 from django.contrib.auth.models import User
 from . import models
+from . import helpers
 import pandas
 #hax for current versions of pandas and pandas_datareader (06.05.2018)
 pandas.core.common.is_list_like = pandas.api.types.is_list_like
@@ -26,26 +27,34 @@ def main(request):
     if not request.user.is_authenticated:
         return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
-    return render(request, 'stocks/main.html', { 'wallet': profile.wallet })
+    return render(request, 'stocks/main.html', { 'wallet': profile.wallet_string })
 
 def browse(request):
     if not request.user.is_authenticated:
         return redirect('index')
     stocks = models.Stock.objects.all()
     errors = []
+    profile = models.Profile.objects.get(user=request.user)
     if request.method == "POST":
         stock_name = request.POST['stock_name']
-        amount = float(request.POST['amount'])
-        price = float(request.POST['price'])
-        profile = models.Profile.objects.get(user=request.user)
-        if amount * price > float(profile.wallet):
-            errors.append("Insufficient funds")
+        amount = request.POST['amount']
+        price = helpers.money_as_int(request.POST['price'])
+        if not helpers.is_integer(amount):
+            errors.append("Stock amount should be an integer")
         else:
+            amount = int(amount)
+        if not errors and amount * price > profile.wallet:
+            errors.append("Insufficient funds")
+        if not errors:
             stock = models.Stock.objects.get(name=stock_name)
             profile_stock = models.ProfileStock.objects.get(profile=profile, stock=stock)
             profile_stock.stocks += amount
             profile_stock.save()
-    return render(request, 'stocks/browse.html', { 'stocks': stocks, 'price': 20, 'change': 1.23, 'errors': errors })
+            transaction = models.Transaction(profile=profile, stock=stock, date=datetime.today(), amount=amount, value=price, cost=amount * price, balance=profile.wallet - amount * price, sell=False)
+            transaction.save()
+            profile.wallet -= amount * price
+            profile.save()
+    return render(request, 'stocks/browse.html', { 'stocks': stocks, 'price': helpers.money_as_string(20), 'change': 1.23, 'errors': errors, 'wallet': profile.wallet_string })
 
 
 def chart(request, name):
@@ -67,24 +76,32 @@ def manage(request):
     errors = []
     if request.method == "POST":
         stock_name = request.POST['stock_name']
+        price = helpers.money_as_int(request.POST['price'])
         stock = models.Stock.objects.get(name=stock_name)
         profile_stock = models.ProfileStock.objects.get(stock=stock)
-        amount = float(request.POST['amount'])
-        price = float(request.POST['price'])
-        profile = models.Profile.objects.get(user=request.user)
-        if amount > profile_stock.stocks:
-            errors.append("Not enough stocks")
+        amount = request.POST['amount']
+        if not helpers.is_integer(amount):
+            errors.append("Stock amount should be an integer")
         else:
+            amount = int(amount)
+        if not errors and amount > profile_stock.stocks:
+            errors.append("Not enough stocks")
+        profile = models.Profile.objects.get(user=request.user)
+        if not errors:
             profile_stock.stocks -= amount
             profile_stock.save()
-    return render(request, 'stocks/manage.html', { 'stocks': stocks, 'price': 20, 'errors': errors })
+            transaction = models.Transaction(profile=profile, stock=stock, date=datetime.today(), amount=amount, value=price, cost=amount * price, balance=profile.wallet - amount * price, sell=True)
+            transaction.save()
+            profile.wallet += amount * price
+            profile.save()
+    return render(request, 'stocks/manage.html', { 'stocks': stocks, 'price': helpers.money_as_string(20), 'errors': errors, 'wallet': profile.wallet_string })
 
 def history(request):
     if not request.user.is_authenticated:
         return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
-    transactions = models.Transaction.objects.filter(profile=profile)
-    return render(request, 'stocks/history.html', { 'transactions': transactions })
+    transactions = models.Transaction.objects.filter(profile=profile).order_by('-date')
+    return render(request, 'stocks/history.html', { 'transactions': transactions, 'wallet': profile.wallet_string })
 
 def register(request):
     if request.method == 'POST':

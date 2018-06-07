@@ -15,6 +15,8 @@
     }
 </style>
 
+{% include "stocks/wallet_state.html" with wallet=wallet %}
+
 <div class="backbtn">
     <a href={% url 'main' %} class="btn btn-primary btn-lg backbtn" role="button">Back</a>
 </div>

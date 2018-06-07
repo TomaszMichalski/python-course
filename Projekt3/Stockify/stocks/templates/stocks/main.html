@@ -9,7 +9,7 @@
 </style>
 
 <h4>Hello, {{ user.first_name }}!</h4>
-<h5>Wallet: {{ wallet }}$</h5>
+{% include "stocks/wallet_state.html" with wallet=wallet %}
 
 <center>
     <div class="group">

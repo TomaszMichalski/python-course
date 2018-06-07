@@ -8,7 +8,7 @@ class Stock(models.Model):
 
     @property
     def quandl_name(self):
-        return "EOD/" + name
+        return "EOD/" + self.name
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -47,3 +47,10 @@ class ProfileStock(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     stocks = models.IntegerField(default=0)
+
+class StockViewModel():
+    def __init__(self, name, price, change_yesterday, change_month):
+        self.name = name
+        self.price = price
+        self.change_yesterday = change_yesterday
+        self.change_month = change_month

@@ -31,7 +31,8 @@
             <tr>
                 <th>Stock</th>
                 <th>Price</th>
-                <th>Change</th>
+                <th>Change since yesterday</th>
+                <th>Change in last month</th>
                 <th>Operation</th>
                 <th>Chart</th>
             </tr>
@@ -40,13 +41,20 @@
         {% for stock in stocks %}
             <tr>
                 <td>{{ stock.name }}</td>
-                <td>{{ price }}</td>
-                {% if change > 0 %}
-                    <td><font color="green">{{ change }}%</font></td>
-                {% elif change == 0 %}
-                    <td>{{ change }}%</td>
+                <td>{{ stock.price }}</td>
+                {% if stock.change_yesterday > 0 %}
+                    <td><font color="green">{{ stock.change_yesterday }}%</font></td>
+                {% elif stock.change_yesterday == 0 %}
+                    <td>{{ stock.change_yesterday }}%</td>
                 {% else %}
-                    <td><font color="red">{{ change }}%</font></td>
+                    <td><font color="red">{{ stock.change_yesterday }}%</font></td>
+                {% endif %}
+                {% if stock.change_month > 0 %}
+                    <td><font color="green">{{ stock.change_month }}%</font></td>
+                {% elif stock.change_month == 0 %}
+                    <td>{{ stock.change_month }}%</td>
+                {% else %}
+                    <td><font color="red">{{ stock.change_month }}%</font></td>
                 {% endif %}
                 <td>
                     <form method="post">

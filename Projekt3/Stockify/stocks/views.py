@@ -54,7 +54,17 @@ def browse(request):
             transaction.save()
             profile.wallet -= amount * price
             profile.save()
-    return render(request, 'stocks/browse.html', { 'stocks': stocks, 'price': helpers.money_as_string(20), 'change': 1.23, 'errors': errors, 'wallet': profile.wallet_string })
+    stock_view_models = []
+    for stock in stocks:
+        data = quandl.get(stock.quandl_name, start_date=datetime.today() - timedelta(days=30), end_date=datetime.today())
+        price_month = int(float(data.Close[0]) * 100)
+        price_yesterday = int(float(data.Close[len(data.Close) - 2]) * 100)
+        price_new = int(float(data.Close[len(data.Close) - 1]) * 100)
+        change_yesterday = float(format((price_new - price_yesterday) / price_yesterday, ".4f"))
+        change_month = float(format((price_new - price_month) / price_month, ".4f"))
+        stock_view_model = models.StockViewModel(stock.name, helpers.money_as_string(price_new), change_yesterday, change_month)
+        stock_view_models.append(stock_view_model)
+    return render(request, 'stocks/browse.html', { 'stocks': stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })
 
 
 def chart(request, name):

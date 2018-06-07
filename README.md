@@ -32,3 +32,5 @@ np.
 python paint.py input.json
 python paint.py input.json --output output.png
 ```
+
+Do uruchomienia wymagany jest pakiet Pillow

@@ -14,6 +14,7 @@ pandas.core.common.is_list_like = pandas.api.types.is_list_like
 import pandas_datareader.data as web
 import quandl
 from datetime import datetime, timedelta
+import json
 # Create your views here.
 
 quandl.ApiConfig.api_key = "Jc6Qyrb7yVunuhwUbKyL"
@@ -80,6 +81,7 @@ def chart(request, name):
     for i in range (0, len(data.Close)):
         plot_data[start.strftime("%Y-%m-%d")] = data.Close[i]
         start += timedelta(days=1)
+    plot_data = json.dumps(plot_data)
     return render(request, 'stocks/chart.html', { 'stock': stock, 'data': plot_data })
 
 def manage(request):

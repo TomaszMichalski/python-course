@@ -1,10 +1,60 @@
 {% extends "base.html" %}
 
-{% block content %} 
+{% block content %}
+
+<style>
+        .backbtn {
+            float: right;
+            margin: 5px;
+        }
+        th {
+            text-align: center;
+        }
+        td {
+            text-align: center;
+        }
+</style>
+
+{% load static %}
+<script src={% static 'stocks/plotly-latest.min.js' %}></script>
+
+<div class="backbtn">
+        <a href={% url 'browse' %} class="btn btn-primary btn-lg backbtn" role="button">Back</a>
+</div>
+
+<center>
+    <br /><br /><br />
+    <div id="plot" style="width:100%;height:100%;"></div>
+</center>
 
 <script type="text/javascript">
-    var django_data = "{{ data }}";
-    document.write(typeof(django_data));
+    plot = document.getElementById("plot");
+
+    var data = JSON.parse('{{ data | escapejs }}');
+    var dates = Object.keys(data);
+    var values = Object.values(data);
+    var chart_title = '{{ stock.name }}';
+
+    var plot_data = [{
+        type: 'scatter',
+        mode: 'lines',
+        x: dates,
+        y: values,
+    }];
+
+    var layout = {
+        title: '{{ stock.name }}',
+        xaxis: {
+            title: 'Date'
+        },
+        yaxis: {
+            title: 'Value',
+            tickformat: '.2f'
+        }
+    };
+
+    Plotly.plot(plot, plot_data, layout, {displayModeBar: false, scrollZoom: false});
+
 </script>
 
 {% endblock %}

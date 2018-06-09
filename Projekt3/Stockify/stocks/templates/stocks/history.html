@@ -26,6 +26,7 @@
         <thead>
             <tr>
                 <th>Date</th>
+                <th>Stock</th>
                 <th>Amount</th>
                 <th>Value</th>
                 <th>Cost</th>
@@ -36,6 +37,7 @@
         {% for transaction in transactions %}
             <tr>
                 <td>{{ transaction.date }}</td>
+                <td>{{ transaction.stock.name }}</td>
                 <td>{{ transaction.amount }}</td>
                 <td>{{ transaction.value_string }}</td>
                 {% if transaction.sell %}

@@ -112,8 +112,8 @@ def manage(request):
             profile.save()
     profile_stock_view_models = []
     for profile_stock in profile_stocks:
-        data = quandl.get(profile_stock.stock.quandl_name, start_date=datetime.today() - timedelta(days=1), end_date=datetime.today())
-        price = int(float(data.Close[0]) * 100)
+        data = quandl.get(profile_stock.stock.quandl_name, start_date=datetime.today() - timedelta(days=30), end_date=datetime.today())
+        price = int(float(data.Close[len(data.Close) - 1]) * 100)
         profile_stock_view_model = models.ProfileStockViewModel(profile_stock.stock.name, profile_stock.stocks, helpers.money_as_string(price))
         profile_stock_view_models.append(profile_stock_view_model)
     return render(request, 'stocks/manage.html', { 'profile_stocks': profile_stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })

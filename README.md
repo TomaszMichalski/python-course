@@ -36,6 +36,7 @@ python paint.py input.json --output output.png
 Do uruchomienia wymagany jest pakiet Pillow
 
 Projekt 3
+
 Symulator gry na giełdzie.
 ```
 python manage.py runserver
@@ -44,4 +45,5 @@ python manage.py runserver
 localhost:8000
 ```
 Do uruchomienia wymagany jest pakiet quandl.
+
 W razie dalszych problemów, potrzebne mogą okazać się pakiety pandas i pandas_datareader.

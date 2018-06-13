@@ -5,11 +5,8 @@
             Stockify
         </title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <style>
-            #bar {
-                border-bottom: 3px solid black;
-            }
-        </style>
+        {% load static %}
+        <link rel="stylesheet" href={% static 'stocks/style.css' %}>
     </head>
     <body>
         <div id="bar">

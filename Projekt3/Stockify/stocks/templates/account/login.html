@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<style>
-    td { padding: 5px }
-</style>
-
+<div class="backbtn">
+    <a href={% url 'index' %} class="btn btn-primary btn-lg backbtn" role="button">Back</a>
+</div>
 <br /><br /><br />
 
 {% if user.is_authenticated %}
@@ -20,8 +18,8 @@
                     {% for field in form %}
                     <div class="form-group">
                         <tr>
-                            <td>{{ field.label_tag }}</td>
-                            <td>{{ field }}</td>
+                            <td style="text-align: left;">{{ field.label_tag }}</td>
+                            <td style="text-align: left;">{{ field }}</td>
                         </tr>
                     </div>
                     {% endfor %}

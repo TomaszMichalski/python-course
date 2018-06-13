@@ -1,0 +1,17 @@
+.backbtn {
+    float: right;
+    margin: 5px;
+}
+th {
+    text-align: center;
+}
+td {
+    text-align: center;
+    padding: 5px;
+}
+.group {
+    width: 30%
+}
+#bar {
+    border-bottom: 3px solid black;
+}

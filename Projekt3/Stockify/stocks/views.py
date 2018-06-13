@@ -6,12 +6,9 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout as django_logout
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from . import models
 from . import helpers
-import pandas
-#hax for current versions of pandas and pandas_datareader (06.05.2018)
-pandas.core.common.is_list_like = pandas.api.types.is_list_like
-import pandas_datareader.data as web
 import quandl
 from datetime import datetime, timedelta
 import json
@@ -24,15 +21,13 @@ def index(request):
         return redirect('main')
     return render(request, 'stocks/index.html', {})
 
+@login_required(login_url='/login/')
 def main(request):
-    if not request.user.is_authenticated:
-        return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
     return render(request, 'stocks/main.html', { 'wallet': profile.wallet_string })
 
+@login_required(login_url='/login/')
 def browse(request):
-    if not request.user.is_authenticated:
-        return redirect('index')
     stocks = models.Stock.objects.all()
     errors = []
     profile = models.Profile.objects.get(user=request.user)
@@ -67,10 +62,8 @@ def browse(request):
         stock_view_models.append(stock_view_model)
     return render(request, 'stocks/browse.html', { 'stocks': stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })
 
-
+@login_required(login_url='/login/')
 def chart(request, name):
-    if not request.user.is_authenticated:
-        return redirect('index')
     stock = models.Stock.objects.get(name=name)
     if stock is None:
         return redirect('browse')
@@ -84,9 +77,8 @@ def chart(request, name):
     plot_data = json.dumps(plot_data)
     return render(request, 'stocks/chart.html', { 'stock': stock, 'data': plot_data })
 
+@login_required(login_url='/login/')
 def manage(request):
-    if not request.user.is_authenticated:
-        return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
     profile_stocks = models.ProfileStock.objects.filter(profile=profile)
     errors = []
@@ -118,9 +110,8 @@ def manage(request):
         profile_stock_view_models.append(profile_stock_view_model)
     return render(request, 'stocks/manage.html', { 'profile_stocks': profile_stock_view_models, 'errors': errors, 'wallet': profile.wallet_string })
 
+@login_required(login_url='/login/')
 def history(request):
-    if not request.user.is_authenticated:
-        return redirect('index')
     profile = models.Profile.objects.get(user=request.user)
     transactions = models.Transaction.objects.filter(profile=profile).order_by('-date')
     return render(request, 'stocks/history.html', { 'transactions': transactions, 'wallet': profile.wallet_string })

@@ -77,10 +77,10 @@ def chart(request, name):
     end = datetime.today()
     start = end - timedelta(days=30)
     data = quandl.get(stock.quandl_name, start_date=start, end_date=end)
+    data = data.reset_index()
     plot_data = dict()
     for i in range (0, len(data.Close)):
-        plot_data[start.strftime("%Y-%m-%d")] = data.Close[i]
-        start += timedelta(days=1)
+        plot_data[str(data.Date[i])] = data.Close[i]
     plot_data = json.dumps(plot_data)
     return render(request, 'stocks/chart.html', { 'stock': stock, 'data': plot_data })
 
@@ -94,7 +94,7 @@ def manage(request):
         stock_name = request.POST['stock_name']
         price = helpers.money_as_int(request.POST['price'])
         stock = models.Stock.objects.get(name=stock_name)
-        profile_stock = models.ProfileStock.objects.get(stock=stock)
+        profile_stock = models.ProfileStock.objects.get(stock=stock, profile=profile)
         amount = request.POST['amount']
         if not helpers.is_integer(amount):
             errors.append("Stock amount should be an integer")

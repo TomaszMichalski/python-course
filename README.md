@@ -46,4 +46,4 @@ localhost:8000
 ```
 Do uruchomienia wymagany jest pakiet quandl.
 
-W razie dalszych problemów, potrzebne mogą okazać się pakiety pandas i pandas_datareader.
+W razie dalszych problemów, potrzebne mogą okazać się pakiety pandas i pandas_datareader (nietestowane).
